@@ -10,3 +10,6 @@ for (const suffix of ['', '-wal', '-shm']) {
 }
 
 console.log(`Database reset: ${config.dbPath}`);
+
+// Re-seed in the same process so reset always lands on the documented dataset.
+await import('./seed.js');

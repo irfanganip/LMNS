@@ -15,7 +15,7 @@
     "dev:api": "npm run dev -w @lmns/api",
     "dev:web": "npm run dev -w @lmns/web",
     "seed": "npm run seed -w @lmns/api",
-    "db:reset": "npm run db:reset -w @lmns/api && npm run seed -w @lmns/api",
+    "db:reset": "npm run db:reset -w @lmns/api",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint . && prettier --check .",

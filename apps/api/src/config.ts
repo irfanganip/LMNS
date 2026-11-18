@@ -52,6 +52,22 @@ function readTierLabels(name: string): Record<TierKey, string> {
   return labels;
 }
 
+/** What the platform fee buys. Copy lives here so no route hard-codes it. */
+const defaultPlatformFeeCovers = [
+  'Verifikasi kredensial mentor',
+  'Ruang mediasi pra-sesi',
+  'Penanganan sengketa',
+];
+
+function readList(name: string, fallback: string[]): string[] {
+  const raw = process.env[name];
+  if (raw === undefined || raw.trim() === '') return fallback;
+  return raw
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 export const config = {
   env: readString('NODE_ENV', 'development'),
   port: readInt('PORT', 3001),
@@ -63,6 +79,27 @@ export const config = {
     .split(',')
     .map((domain) => domain.trim().toLowerCase())
     .filter(Boolean),
+  platformFeeCovers: readList('PLATFORM_FEE_COVERS', defaultPlatformFeeCovers),
+  contactPolicy:
+    'Kontak langsung baru dibuka setelah biaya platform dibayar. Jangan bertukar kontak di luar kanal ini.',
+  receiptDisclaimer: 'Prototipe demo: pembayaran disimulasikan dan tidak ada dana yang berpindah.',
+  /** SLA for an application decision, in calendar days (see data-model §6). */
+  applicationSlaDays: 3,
+  /** Review prompt delay after a session completes. */
+  reviewEligibilityMinutes: 60,
 } as const;
 
 export type Config = typeof config;
+
+/** Public runtime config (docs/api-contract.md §4). */
+export function demoConfig(): Record<string, unknown> {
+  return {
+    platformFeeIdr: config.platformFeeIdr,
+    tierLabels: config.tierLabels,
+    allowedEmailDomains: config.allowedEmailDomains,
+    demoMode: true,
+    disclaimer:
+      'Prototipe demo: pembayaran disimulasikan, OTP ditampilkan langsung, dan tidak ada layanan klinis.',
+    platformFeeCovers: config.platformFeeCovers,
+  };
+}

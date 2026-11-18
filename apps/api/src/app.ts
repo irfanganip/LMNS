@@ -1,9 +1,10 @@
 import express from 'express';
 import type { Express } from 'express';
 import type { Db } from './db/index.js';
-import { config } from './config.js';
+import { demoConfig } from './config.js';
 import { countRows, seededAt } from './db/index.js';
 import { errorHandler, notFound } from './http/errors.js';
+import { buildRouter } from './routes/index.js';
 
 /**
  * Builds the API app. Routes added by later tasks mount under `/api` and must
@@ -43,15 +44,10 @@ export function createApp(db: Db): Express {
   // Public runtime configuration. UI copy for the fee and tier labels comes
   // from here; neither value is hard-coded in the web app.
   app.get('/api/config', (_req, res) => {
-    res.json({
-      platformFeeIdr: config.platformFeeIdr,
-      tierLabels: config.tierLabels,
-      allowedEmailDomains: config.allowedEmailDomains,
-      demoMode: true,
-      disclaimer:
-        'Prototipe demo: pembayaran disimulasikan, OTP ditampilkan langsung, dan tidak ada layanan klinis.',
-    });
+    res.json(demoConfig());
   });
+
+  app.use('/api', buildRouter(db));
 
   app.use(notFound);
   app.use(errorHandler);
