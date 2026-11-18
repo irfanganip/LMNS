@@ -1,0 +1,35 @@
+{
+  "name": "lmns",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LMNS — academic balance & well-being mentoring marketplace (prototype)",
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev -w @lmns/api",
+    "dev:web": "npm run dev -w @lmns/web",
+    "seed": "npm run seed -w @lmns/api",
+    "db:reset": "npm run db:reset -w @lmns/api && npm run seed -w @lmns/api",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.20.0",
+    "eslint-config-prettier": "^10.0.1",
+    "prettier": "^3.5.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.0"
+  },
+  "type": "module"
+}
