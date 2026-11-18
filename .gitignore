@@ -13,3 +13,7 @@ coverage/
 !.env.example
 
 .DS_Store
+
+# generated SQLite files (WAL sidecars)
+*.db-wal
+*.db-shm
