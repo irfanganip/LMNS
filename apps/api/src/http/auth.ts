@@ -34,20 +34,17 @@ export function resolveSession(db: Db, token: string): AuthUser | null {
   return { id: row.id, email: row.email, role: row.role, emailVerifiedAt: row.email_verified_at };
 }
 
+/**
+ * Attaches the session user when the bearer token is valid. Authentication
+ * failures are raised by the route itself via `requireAuth`/`requireRole`, so
+ * an unknown route still returns the documented 404 instead of a 401.
+ */
 export function authenticate(db: Db): RequestHandler {
   return (req: Request, _res: Response, next: NextFunction) => {
     const header = req.header('authorization') ?? '';
     const match = /^Bearer\s+(.+)$/i.exec(header.trim());
-    if (!match?.[1]) {
-      next(new AppError(401, 'UNAUTHENTICATED', 'Sesi tidak ditemukan. Silakan masuk.'));
-      return;
-    }
-    const user = resolveSession(db, match[1]);
-    if (!user) {
-      next(new AppError(401, 'UNAUTHENTICATED', 'Sesi tidak valid atau sudah berakhir.'));
-      return;
-    }
-    req.authUser = user;
+    const user = match?.[1] ? resolveSession(db, match[1]) : null;
+    if (user) req.authUser = user;
     next();
   };
 }
