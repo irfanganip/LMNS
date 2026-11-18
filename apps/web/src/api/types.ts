@@ -113,6 +113,7 @@ export type ApplicationStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJEC
 export type Application = {
   id: string;
   mentorId: string;
+  displayName: string;
   tier: Tier;
   tierLabel: string;
   status: ApplicationStatus;

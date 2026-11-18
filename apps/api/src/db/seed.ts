@@ -260,6 +260,23 @@ const EVIDENCE_BASIC = {
   linkedinUrl: 'https://www.linkedin.com/in/hendra-kusuma',
 };
 
+/**
+ * Same mapping the publish path uses (`services/applications.ts`), so a seeded
+ * mentor exposes the evidence links the reviewer verified.
+ */
+function verifiedLinksFromEvidence(
+  evidence: Record<string, string>,
+): Record<string, string | null> {
+  return {
+    googleScholar: evidence.googleScholarUrl ?? null,
+    linkedin: evidence.linkedinUrl ?? null,
+    scopus: evidence.scopusId ?? null,
+    orcid: evidence.orcidId ?? null,
+    institutional: evidence.s3VerificationUrl ?? evidence.organisationUrl ?? null,
+    sisterId: evidence.sisterId ?? null,
+  };
+}
+
 const applications = [
   {
     id: 'app_hendra',
@@ -807,7 +824,7 @@ try {
       JSON.stringify(mentor.research),
       JSON.stringify(mentor.destinations),
       JSON.stringify(mentor.degreeFocus),
-      JSON.stringify({}),
+      JSON.stringify(application ? verifiedLinksFromEvidence(application.evidence) : {}),
       application?.id ?? null,
     );
   }

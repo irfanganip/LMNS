@@ -27,6 +27,7 @@ npm run dev      # API on :3001 + web on :5173, one command
 - Root checks: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 - The web app proxies `/api` to the API, so the browser talks to a single origin. If `:5173` is taken, Vite prints the port it actually used.
 - Optional configuration: copy `.env.example` to `.env`. The fee, tier labels, demo OTP and email-domain allowlist are read from there and served to the UI by `GET /api/config`.
+- If ports are busy, override them without touching `.env`: `PORT=3101 WEB_PORT=5175 API_PROXY_TARGET=http://localhost:3101 npm run dev` (the web app follows `WEB_PORT` and proxies `/api` to `API_PROXY_TARGET`).
 
 ### Demo accounts
 
@@ -44,6 +45,16 @@ Sign in with the email only (prototype auth stub, no passwords); the demo OTP is
 | `reviewer@lmns.id` | Admin | Verification queue |
 
 The full dataset (plus six supply-only mentors across six disciplines) is specified in `docs/seed-data.md`.
+
+### Five-beat demo (docs/prototype-scope.md §7)
+
+Run the beats in order against a freshly seeded database (`npm run db:reset && npm run dev`).
+
+1. **Trust is verifiable** — visit `/`, filter the tier chips to *Premium Educator Mentor* (two mentors remain), open Dr. Adi Prasetyo. The profile shows the tier, the platform fee served by `GET /api/config`, the badge with its href, and the Scopus/Scholar/LinkedIn links. `hendra@ugm.ac.id` is still pending verification and does not appear in discovery.
+2. **The fee is honest** — sign in as `bayu@ugm.ac.id`, open a mentor, *Ajukan sesi*, fill the intake note, continue to `/booking/:id/pembayaran`. The checkout shows the `Rp 50.000` platform fee, states that it is not the session fee, and blocks payment until the fee disclosure is acknowledged. Paying (mock) issues a receipt `LMNS-2026-####`. Before payment, `GET /api/bookings/:id/thread` returns `402`.
+3. **The agreement is the product** — in `/booking/:id/mediasi`, confirm scope, schedule and settlement one item at a time. A single-sided (or partially confirmed) card never produces `SCHEDULED`; `bkg_citra_tono_1` in the seed is the one-sided example and stays `PAID`. After both sides confirm all three items, the booking is `SCHEDULED`.
+4. **Supply is vetted** — sign in as `reviewer@lmns.id`, open *Verifikasi*. The queue lists the pending application with its SLA age; the detail shows every evidence link. Approving both updates the status and puts the mentor in discovery (`Hendra` on `/`). Approving an incomplete checklist is refused with `409 BADGE_PRECONDITIONS_UNMET`; `dewi@unair.ac.id` is the rejected example, showing `MISSING_SISTER_ID` and the templated reason.
+5. **Well-being has signal** — as `rani@ui.ac.id`, open *Booking saya* (`bkg_rani_adi_1` is completed), submit the dual-axis review plus the mood check. A second submission is refused (`409 REVIEW_ALREADY_SUBMITTED`) and the review screen no longer offers the form. As a visitor, the mentor profile shows *Akademik* and *Kesejahteraan* as two separate averages and never a blended score.
 
 ## Contracts (build against these)
 

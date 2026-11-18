@@ -144,7 +144,9 @@ export function AdminQueueScreen() {
               {items.map((item) => (
                 <tr key={item.application.id}>
                   <td>
-                    <p className="table__primary">{item.application.mentorId}</p>
+                    <p className="table__primary">
+                      {item.application.displayName ?? item.mentorEmail}
+                    </p>
                     <p className="muted small mono">{item.mentorEmail}</p>
                   </td>
                   <td>

@@ -242,10 +242,31 @@ function ReviewItem({ review }: { review: ReviewPublic }) {
   );
 }
 
+function isUrl(value: string | null | undefined): value is string {
+  return typeof value === 'string' && /^https?:\/\//.test(value);
+}
+
+/** Reviewers may record an identifier instead of a profile URL; expand the ones we can address. */
+function identifierHref(label: string, value: string): string | null {
+  if (label === 'Scopus' && /^\d+$/.test(value)) {
+    return `https://www.scopus.com/authid/detail.uri?authorId=${value}`;
+  }
+  if (label === 'ORCID' && /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/.test(value)) {
+    return `https://orcid.org/${value}`;
+  }
+  return null;
+}
+
 function badgeLink(type: string, links: VerifiedLinks | null): string | null {
   if (!links) return null;
-  if (type === 'SCOPUS_ORCID_VERIFIED') return links.scopus ?? links.orcid ?? null;
-  if (type === 'SISTER_VERIFIED') return links.institutional ?? null;
+  if (type === 'SCOPUS_ORCID_VERIFIED') {
+    return (
+      [links.scopus, links.orcid].find((value) => isUrl(value)) ??
+      (links.scopus ? identifierHref('Scopus', links.scopus) : null) ??
+      (links.orcid ? identifierHref('ORCID', links.orcid) : null)
+    );
+  }
+  if (type === 'SISTER_VERIFIED') return [links.institutional, links.sisterId].find(isUrl) ?? null;
   return null;
 }
 
@@ -258,8 +279,20 @@ function VerifiedLinksBlock({ links }: { links: VerifiedLinks | null }) {
     { label: 'ORCID', value: links.orcid },
     { label: 'Situs institusi', value: links.institutional },
   ];
-  const available = entries.filter((entry) => entry.value);
-  if (available.length === 0 && !links.sisterId) return null;
+  const filled = entries.filter((entry): entry is { label: string; value: string } =>
+    Boolean(entry.value),
+  );
+  // A reviewer may record an identifier (Scopus/ORCID number) rather than a URL.
+  const urls = filled.filter((entry) => isUrl(entry.value));
+  const identifiers = filled.filter(
+    (entry) => !isUrl(entry.value) && identifierHref(entry.label, entry.value) === null,
+  );
+  const expanded = filled
+    .filter((entry) => !isUrl(entry.value) && identifierHref(entry.label, entry.value) !== null)
+    .map((entry) => ({ label: entry.label, value: identifierHref(entry.label, entry.value)! }));
+  if (urls.length === 0 && identifiers.length === 0 && !links.sisterId && expanded.length === 0) {
+    return null;
+  }
   return (
     <Section title="Tautan terverifikasi">
       <div className="card">
@@ -270,7 +303,13 @@ function VerifiedLinksBlock({ links }: { links: VerifiedLinks | null }) {
               <span className="mono">{links.sisterId}</span>
             </li>
           )}
-          {available.map((entry) => (
+          {identifiers.map((entry) => (
+            <li key={entry.label}>
+              <span className="link-list__label">{entry.label}</span>
+              <span className="mono">{entry.value}</span>
+            </li>
+          ))}
+          {[...urls, ...expanded].map((entry) => (
             <li key={entry.label}>
               <a href={entry.value ?? '#'} target="_blank" rel="noopener noreferrer">
                 {entry.label} <IconExternal size={14} />
